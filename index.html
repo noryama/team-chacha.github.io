@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QN · CHACHA</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- Playfair Display - main font -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Syne Mono - founder's box only -->
+  <link href="https://fonts.googleapis.com/css2?family=Syne+Mono&display=swap" rel="stylesheet" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="manifest" href="images/site.webmanifest">
+  <style>
+    /* ----------------------------------------------
+       CUSTOMIZATION GUIDE (for developers)
+       – change the variables below to tweak the palette
+       – all styles are scoped, no !important, easy to override
+       – component classes are self-contained
+    ------------------------------------------------ */
+    :root {
+      --floral: #f5e56b;        /* ← main yellow, change to any color */
+      --cherry: #d42a3a;        /* ← cherry red for founder */
+      --cherry-light: #e85a6a;
+      --cherry-dark: #a01e2a;
+      --bg: #000000;            /* ← background, keep dark for contrast */
+      --border-width: 2px;
+      --shadow-offset: 8px;
+    }
+
+    /* ---------- reset & base ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--floral);
+      font-family: 'Playfair Display', 'Times New Roman', serif;
+      line-height: 1.6;
+      padding: 2rem 1.5rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* main container – maximalist edge */
+    .container {
+      max-width: 1440px;
+      width: 100%;
+      background: transparent;
+      border: var(--border-width) solid var(--floral);
+      padding: 2.5rem 2.8rem;
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--floral);
+      transition: all 0.2s ease;
+    }
+
+    /* ---------- typography (Playfair Display - slightly reduced) ---------- */
+    h1, h2, h3, h4, .title, .subtitle, .team-name:not(.founder-name),
+    p, li, .text-block, .project-title, .project-people, .project-desc,
+    .people-list li, .team-role, .team-bio, .footer-copy, .footer-ai-notice,
+    .social-links a {
+      font-family: 'Playfair Display', 'Times New Roman', serif !important;
+    }
+
+    h1 {
+      font-size: 3.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      line-height: 1.1;
+      border-bottom: 4px solid var(--floral);
+      padding-bottom: 0.4rem;
+      margin-bottom: 1.6rem;
+      display: inline-block;
+      box-shadow: inset 0 -4px 0 var(--floral);
+      font-weight: 700;
+    }
+
+    h2 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      border-left: 8px solid var(--floral);
+      padding-left: 1.2rem;
+      letter-spacing: 0.02em;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 0.7rem;
+      letter-spacing: 0.01em;
+    }
+
+    p, li, .text-block {
+      font-weight: 400;
+    }
+
+    .subtitle-text {
+      font-weight: 400;
+      font-style: italic;
+      letter-spacing: 0.04em;
+      opacity: 0.9;
+    }
+
+    /* ---------- layout : cards ---------- */
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      margin-top: 1.2rem;
+    }
+
+    .project-card, .team-card {
+      background: var(--bg);
+      border: var(--border-width) solid var(--floral);
+      padding: 1.6rem 1.6rem 1.8rem;
+      box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--floral);
+      transition: 0.15s linear;
+    }
+
+    .project-card:hover, .team-card:hover {
+      box-shadow: calc(var(--shadow-offset) * 1.5) calc(var(--shadow-offset) * 1.5) 0 var(--floral);
+      transform: translate(-2px, -2px);
+    }
+
+    /* ----- FOUNDER CARD - CHERRY COLORED + SYNE MONO FONT + BANNER ----- */
+    .team-card.founder-card {
+      border: 3px solid var(--cherry);
+      box-shadow: var(--shadow-offset) var(--shadow-offset) 0 var(--cherry);
+      background: linear-gradient(145deg, #1a0508, #000000);
+      position: relative;
+      overflow: hidden;
+      padding-top: 0;
+    }
+
+    .team-card.founder-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 40%, rgba(212, 42, 58, 0.08), transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .team-card.founder-card:hover {
+      box-shadow: calc(var(--shadow-offset) * 1.8) calc(var(--shadow-offset) * 1.8) 0 var(--cherry-light);
+      transform: translate(-3px, -3px);
+      border-color: var(--cherry-light);
+    }
+
+    /* FOUNDER BANNER IMAGE */
+    .team-card.founder-card .founder-banner {
+      width: 100%;
+      margin: 0 0 1rem 0;
+      border-bottom: 3px solid var(--cherry);
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    .team-card.founder-card .founder-banner img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 180px;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .team-card.founder-card:hover .founder-banner img {
+      transform: scale(1.05);
+    }
+
+    /* SYNE MONO - founder's box only */
+    .team-card.founder-card,
+    .team-card.founder-card .team-name,
+    .team-card.founder-card .team-role,
+    .team-card.founder-card .team-bio,
+    .team-card.founder-card .founder-badge,
+    .team-card.founder-card *:not(.founder-banner):not(.founder-banner img) {
+      font-family: 'Syne Mono', 'Courier New', monospace !important;
+    }
+
+    .team-card.founder-card .team-name {
+      color: var(--cherry-light);
+      border-bottom-color: var(--cherry);
+      font-size: 1.8rem;
+      text-shadow: 0 0 30px rgba(212, 42, 58, 0.3);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      position: relative;
+      z-index: 1;
+    }
+
+    .team-card.founder-card .team-role {
+      background: var(--cherry);
+      color: #fff;
+      box-shadow: 0 0 20px rgba(212, 42, 58, 0.4);
+      font-weight: 400;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .team-card.founder-card .team-bio {
+      color: #f5e56b;
+      opacity: 0.9;
+      font-weight: 400;
+      font-size: 0.85rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .team-card.founder-card .founder-badge {
+      display: inline-block;
+      background: var(--cherry);
+      color: #fff;
+      font-size: 0.55rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      padding: 0.15rem 0.8rem;
+      border-radius: 40px;
+      margin-top: 0.5rem;
+      font-weight: 400;
+      border: 1px solid var(--cherry-light);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* cherry glow effect */
+    .team-card.founder-card::after {
+      content: '◆';
+      position: absolute;
+      bottom: 10px;
+      right: 15px;
+      font-size: 2.5rem;
+      color: var(--cherry);
+      opacity: 0.1;
+      z-index: 0;
+    }
+
+    /* ----- end founder card ----- */
+
+    .project-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      border-bottom: 2px dashed var(--floral);
+      padding-bottom: 0.2rem;
+      margin-bottom: 0.7rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      letter-spacing: 0.02em;
+    }
+
+    .project-people {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: var(--floral);
+      color: var(--bg);
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      display: inline-block;
+      margin-top: 0.2rem;
+    }
+
+    .project-desc {
+      margin: 0.7rem 0 0.4rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+      line-height: 1.7;
+      font-weight: 400;
+    }
+
+    .people-list {
+      margin-top: 0.6rem;
+      list-style: none;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 1.2rem;
+    }
+
+    .people-list li {
+      font-size: 0.85rem;
+      font-weight: 400;
+      background: #1a1a1a;
+      padding: 0.1rem 0.8rem;
+      border: 1px solid var(--floral);
+      border-radius: 40px;
+      letter-spacing: 0.02em;
+    }
+
+    .people-list li::before {
+      content: "◆ ";
+      color: var(--floral);
+      font-weight: 300;
+    }
+
+    /* team grid */
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .team-card {
+      text-align: center;
+      padding: 1.3rem 1rem;
+      background: var(--bg);
+    }
+
+    .team-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      border-bottom: 2px solid var(--floral);
+      display: inline-block;
+      padding-bottom: 0.2rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: 0.02em;
+    }
+
+    .team-role {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      background: var(--floral);
+      color: var(--bg);
+      padding: 0.2rem 0.9rem;
+      border-radius: 40px;
+      display: inline-block;
+      margin-top: 0.2rem;
+      font-weight: 600;
+    }
+
+    .team-bio {
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    /* ---------- footer / social links ---------- */
+    .site-footer {
+      margin-top: 3rem;
+      border-top: 3px dotted var(--floral);
+      padding-top: 1.8rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .footer-left {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .footer-copy {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      letter-spacing: 0.04em;
+      font-weight: 400;
+    }
+
+    .footer-ai-notice {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      opacity: 0.5;
+      border: 1px solid var(--floral);
+      padding: 0.1rem 0.8rem;
+      border-radius: 40px;
+      background: rgba(245, 229, 107, 0.05);
+      font-weight: 400;
+    }
+
+    .social-links {
+      display: flex;
+      gap: 1.8rem;
+      align-items: center;
+    }
+
+    .social-links a {
+      color: var(--floral);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1rem;
+      letter-spacing: 0.04em;
+      border-bottom: 2px solid transparent;
+      transition: border-color 0.2s, opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .social-links a:hover {
+      border-bottom: 2px solid var(--floral);
+      opacity: 0.8;
+    }
+
+    .social-links svg {
+      width: 22px;
+      height: 22px;
+      fill: currentColor;
+      flex-shrink: 0;
+      display: block;
+    }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 800px) {
+      .container { padding: 1.5rem 1rem; }
+      .grid-2col { grid-template-columns: 1fr; gap: 1.8rem; }
+      h1 { font-size: 3rem; }
+      h2 { font-size: 1.8rem; border-left-width: 6px; padding-left: 0.8rem; }
+      .site-footer { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+      .footer-left { width: 100%; justify-content: space-between; }
+      .team-grid { grid-template-columns: 1fr; }
+      .team-card.founder-card .founder-banner img {
+        max-height: 140px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 1rem 0.5rem; }
+      .project-title { font-size: 1.3rem; flex-direction: column; align-items: flex-start; gap: 0.2rem; }
+      .project-people { font-size: 0.75rem; }
+      .social-links { gap: 1.2rem; flex-wrap: wrap; }
+      .footer-left { flex-direction: column; align-items: flex-start; gap: 0.6rem; }
+      .social-links svg { width: 18px; height: 18px; }
+      h1 { font-size: 2.2rem; }
+      h2 { font-size: 1.5rem; }
+      .team-card.founder-card .founder-banner img {
+        max-height: 100px;
+      }
+    }
+
+    hr {
+      border: none;
+      border-top: 3px dotted var(--floral);
+      margin: 2rem 0;
+    }
+
+    /* extra utility */
+    a {
+      color: var(--floral);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--floral);
+    }
+    a:hover { border-bottom: 2px solid var(--floral); }
+
+    /* ----- decorative cherry accent ----- */
+    .cherry-accent {
+      color: var(--cherry);
+    }
+
+    .founder-crown {
+      font-size: 1.1rem;
+      display: inline-block;
+      margin-right: 0.3rem;
+    }
+
+    /* subtitle text */
+    .subtitle {
+      font-size: 1.1rem;
+      font-weight: 400;
+      margin-top: -0.2rem;
+      letter-spacing: 0.06em;
+      border-left: 4px solid var(--floral);
+      padding-left: 1rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- =============================================
+       TITLE – change text and symbol below
+  ============================================= -->
+  <header>
+    <h1>◇ TEAM CHACHA ◇</h1>
+    <p class="subtitle">
+      DELTARUNE/UNDERTALE AU's Developers. We also allow other projects (even those not related to DELTARUNE/UNDERTALE) to be represented under our name.
+    </p>
+  </header>
+
+  <!-- =============================================
+       PROJECTS – edit the cards below
+       each card: title, description, list of people
+  ============================================= -->
+  <section style="margin-top: 2.8rem;">
+    <h2>‡ in development</h2>
+    <div class="grid-2col">
+
+      <!-- project 1 -->
+      <div class="project-card">
+        <div class="project-title">
+          <span>◈ HORRORTALE: horrorveil | INDEV</span>
+          <span class="project-people">2 devs</span>
+        </div>
+        <p class="project-desc">HorrorTale's take. An anti-casual psychological horror game with risk, plot, and puzzles in the form of a novella.</p>
+        <ul class="people-list">
+          <li>noryama — code, sound</li>
+          <li>heya — sprite</li>
+        </ul>
+      </div>
+
+      <!-- project 2 -->
+      <div class="project-card">
+        <div class="project-title">
+          <span>◈ runeDelta | CONCEPTUALIZATION</span>
+          <span class="project-people">1 dev</span>
+        </div>
+        <p class="project-desc">DELTARUNE AU. This project was planned as DELTARUNE, with a different plot and direction. We're currently looking for coders and spriters.</p>
+        <ul class="people-list">
+          <li>noryama — concept, sound, sprite</li>
+        </ul>
+      </div>
+
+      <!-- project 3 -->
+      <div class="project-card">
+        <div class="project-title">
+          <span>◈ underrupt | CONCEPTUALIZATION</span>
+          <span class="project-people">2 devs</span>
+        </div>
+        <p class="project-desc">UNDERTALE AU. The plot of this project was based on the cruelty of Asgore, the harsh economic corruption of the underground, and the hero who will save the underground from Asgore. We're currently looking for coders and spriters.</p>
+        <ul class="people-list">
+          <li>noryama — concept, sound, sprite</li>
+        </ul>
+      </div>
+
+    </div> <!-- close grid-2col -->
+  </section>
+
+  <!-- =============================================
+       DEVELOPMENT TEAM – edit names, roles, bios
+       FOUNDER CARD: cherry-colored + Syne Mono font + BANNER IMAGE!
+  ============================================= -->
+  <section style="margin-top: 3.5rem;">
+    <h2>‡ development team</h2>
+    <div class="team-grid">
+      
+      <!-- FOUNDER CARD - CHERRY COLORED + SYNE MONO FONT + BANNER -->
+      <div class="team-card founder-card">
+        <!-- BANNER IMAGE -->
+        <div class="founder-banner">
+          <img src="https://cdn.discordapp.com/attachments/1515763493322887302/1519271568155611206/8.jpg?ex=6a3cf368&is=6a3ba1e8&hm=897776617df08b50d53f93507ca150d23e08aa1d4f786735595983291ad18fcf&" alt="Founder banner" />
+        </div>
+        <div class="team-name">
+          <span class="founder-crown">♛</span> noryama.
+        </div>
+        <span class="team-role">founder · composer · concept-artist</span>
+        <p class="team-bio">it's me!</p>
+        <span class="founder-badge">✦ founder ✦</span>
+      </div>
+
+      <div class="team-card">
+        <div class="team-name">GizXD</div>
+        <span class="team-role">artist <span style="opacity:0.5; font-size:0.7rem;">| inactive</span></span>
+        <p class="team-bio">INACTIVE project artist.</p>
+      </div>
+
+      <div class="team-card">
+        <div class="team-name">heya.</div>
+        <span class="team-role">artist</span>
+        <p class="team-bio">french artist of horrorveil</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =============================================
+       FOOTER with official GitHub & Telegram logos
+       + AI notice – INSERT YOUR LINKS BELOW
+  ============================================= -->
+  <footer class="site-footer">
+    <div class="footer-left">
+      <span class="footer-copy">◇ floral gamedev · 2026</span>
+      <span class="footer-ai-notice">✦ some parts made with AI</span>
+    </div>
+    <div class="social-links">
+      
+      <!-- GitHub Link -->
+      <a href="https://github.com/noryama/team-chacha.github.io" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38
+          0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01
+          -.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89
+          -3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18
+          1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82
+          1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0
+          .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        GitHub
+      </a>
+
+      <!-- Telegram Link -->
+      <a href="https://t.me/horrorveil" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12
+          0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02
+          .472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902
+          -1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23
+          .007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49
+          -1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893
+          -.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+        </svg>
+        Telegram
+      </a>
+
+    </div>
+  </footer>
+
+</div>
+<!-- end container -->
+</body>
+</html>
